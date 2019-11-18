@@ -1,0 +1,12 @@
+add Reg0 Reg1
+mul Reg7 Reg4
+irmov $0x005c Reg6
+rrmov Reg5 Reg3
+jz 0xffff
+halt
+jmp 0x12c3
+sub Reg2 Reg0
+ldr Reg1 Reg2
+ldm Reg6 0xabcd
+str Reg3 Reg7
+stm Reg4 0x3bff
