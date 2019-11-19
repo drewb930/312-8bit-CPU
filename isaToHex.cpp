@@ -8,10 +8,12 @@
 using namespace std;
 
 /*///////////////////////////////////////
-	Immeadiate vals must be have 4
-	hex digits w/ the prefix '$0x'
+For a 5x24
 	
-	Memory addresses must be 4 hex
+	Immeadiate vals must be have up to 2
+	hex digits (i.e. 8 bits) w/ the prefix '$0x'
+	
+	Memory addresses must be 2 hex
 	digits w/ the prefix '0x'
 	
 	Registers must be capitalized
@@ -28,7 +30,7 @@ using namespace std;
 // Writes "0000" if the instruction doesn't have a Src/Dest
 void writeZeros(ofstream& ofs)
 {
-	ofs << "0000 ";
+	ofs << "0";
 }
 
 // Takes the immeadiate value and writes it w/o the '$0x' prefix
@@ -36,18 +38,24 @@ void writeImm(string imm, ofstream& ofs)
 {
 	// Checking if the prefix is right
 	if(imm[0] != '$') {return;}
-	string immHex = imm.substr(3);
+	//Checking if the length is right
+	if(imm.length() != 5 && imm.length() != 4) {return;}
 	
-	ofs << immHex << " ";
+	if(imm.length() == 4) {ofs << "0";}
+	
+	string immHex = imm.substr(3);
+	ofs << immHex;
 }
 
 // Takes the address (in hex) and writes it (in hex w/o the 0x prefix)
 void writeMemAddr(string addr, ofstream& ofs)
 {
+	if(addr.length() != 4 && addr.length() != 3) {return;}
+	if(addr.length() == 3) {ofs << "0";}
+	
 	// Removing the "0x"
 	string addrHex = addr.substr(2);
-	
-	ofs << addrHex << " ";
+	ofs << addrHex;
 }
 
 // Takes the string of the register and writes the register's hex code
@@ -65,8 +73,8 @@ void writeRegisterHex(string reg, ofstream& ofs)
 	if(itr == reg_map.end()) {reg_map.erase(itr);} // Should throw a warning
 			
 	int regDec = itr->second;
-	ofs << hex << "000" << regDec;
-	ofs << " ";
+	ofs << hex << "0" << regDec;
+	//ofs << " ";
 	
 }
 
@@ -86,38 +94,39 @@ int writeInstructionHex(string instr, ofstream& ofs)
 	
 	int instDec = itr->second;
 	
+	// Group Code
 	switch(instDec)
 	{
 		case 0:
 			writeZeros(ofs);
 			break;
 		case 1:
-			ofs << "000";
+			//ofs << "000";
 			ofs << hex << 1;
 			break;
 		case 2:
 		case 7:
 		case 8:
 		case 9:
-			ofs << "000";
+			//ofs << "000";
 			ofs << hex << 2;
 			break;
 		case 3:
 		case 6:
-			ofs << "000";
+			//ofs << "000";
 			ofs << hex << 3;
 			break;
 		case 4:
 		case 5:
-			ofs << hex << "000" << 5;
+			ofs << hex << 5;
 			break;
 		case 10:
 		case 11:
-			ofs << hex << "000" << 4;
+			ofs << hex << 4;
 			break;
 	}
 	
-	ofs << hex << " 000" << instDec << " ";
+	ofs << hex << instDec;
 	
 	return instDec;
 	
@@ -162,6 +171,7 @@ void parse(string line, ofstream& ofs)
 		{
 			writeMemAddr(word, ofs);
 			writeZeros(ofs);
+			writeZeros(ofs);
 		}
 	}
 	// In the case of irmov
@@ -177,6 +187,7 @@ void parse(string line, ofstream& ofs)
 	{
 		writeZeros(ofs);
 		writeZeros(ofs);
+		ofs << "00";
 	}
 }
 
@@ -202,7 +213,8 @@ int main(int argc, char** argv)
 		while ( getline (myfile,line) )
 		{
 			parse(line, ofs);
-			if(i++ % 2 == 0) {ofs << endl;}
+			ofs << " ";
+			if(i++ % 8 == 0) {ofs << endl;}
 		}
 		myfile.close();
 		ofs.close();
