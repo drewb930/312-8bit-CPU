@@ -23,8 +23,14 @@ For a 5x24
 	
 	This doesn't do many safety checks
 	
-	rn doesnt account for brackets
-	around registers
+	Gotta use ()  around dest for ldr/str
+	Also *right now* haven't figured out
+	how to have a negative displacement
+	0 <= displacement <=15
+	displacement vals should be in decimal
+	not hex
+	
+	added start instruction lol
 //////////////////////////////////////*/
 
 // Writes "0000" if the instruction doesn't have a Src/Dest
@@ -73,9 +79,26 @@ void writeRegisterHex(string reg, ofstream& ofs)
 	if(itr == reg_map.end()) {reg_map.erase(itr);} // Should throw a warning
 			
 	int regDec = itr->second;
-	ofs << hex << "0" << regDec;
+	ofs << hex << regDec;
 	//ofs << " ";
 	
+}
+
+void writeRegWithDisplacement(string word, ofstream& ofs)
+{
+	if(word.length() < 6) {return;}
+	
+	size_t start = word.find("(");
+	string disp = word.substr(0, start);
+	
+	if(disp.length() == 0) {ofs << "0";}
+	else {
+		int displacement = stoi(disp);
+		ofs << hex << displacement;
+	}
+	
+	string reg = word.substr(start + 1, 4);
+	writeRegisterHex(reg, ofs);
 }
 
 // Takes string of instruction and writes its hex code, also returns its decimal val
@@ -85,7 +108,7 @@ int writeInstructionHex(string instr, ofstream& ofs)
 	map<string, int> inst_map = 
 	{
 		{"halt", 0}, {"irmov", 1}, {"rrmov", 2}, {"ldr", 3}, {"ldm", 4}, {"stm", 5},
-		{"str", 6}, {"add", 7}, {"sub", 8}, {"mul", 9}, {"jmp", 10}, {"jz", 11}
+		{"str", 6}, {"add", 7}, {"sub", 8}, {"mul", 9}, {"jmp", 10}, {"jz", 11}, {"start", 12}
 	};
 	map<string, int>::iterator itr;
 	
@@ -124,6 +147,8 @@ int writeInstructionHex(string instr, ofstream& ofs)
 		case 11:
 			ofs << hex << 4;
 			break;
+		case 12:
+			return instDec;
 	}
 	
 	ofs << hex << instDec;
@@ -143,7 +168,11 @@ void parse(string line, ofstream& ofs)
 	iss >> word;
 	int instDec = writeInstructionHex(word, ofs);
 	
-	
+	if(instDec == 12)
+	{
+		ofs << "ffffff";
+		return;
+	}
 	if(instDec >= 2)
 	{
 		iss >> word;
@@ -151,12 +180,20 @@ void parse(string line, ofstream& ofs)
 		// If Src should be a register
 		if(instDec <= 9)
 		{
+			ofs << "0";
 			writeRegisterHex(word, ofs);
 			
-			// If Dest is a register
-			if(instDec != 4 && instDec != 5)
+			//getting displacement for ldr, str
+			if(instDec == 3 || instDec == 6)
 			{
 				iss >> word;
+				writeRegWithDisplacement(word, ofs);
+			}
+			// If Dest is a register
+			else if(instDec != 4 && instDec != 5)
+			{
+				iss >> word;
+				ofs << "0";
 				writeRegisterHex(word, ofs);
 			}
 			// If Dest is an address
@@ -180,6 +217,7 @@ void parse(string line, ofstream& ofs)
 		iss >> word;
 		writeImm(word, ofs);
 		iss >> word;
+		ofs << "0";
 		writeRegisterHex(word, ofs);
 	}
 	// In the case of halt
