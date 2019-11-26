@@ -1,0 +1,44 @@
+start
+irmov $0x00 Reg3
+irmov $0x10 Reg4
+irmov $0xd0 Reg5
+irmov $0xe0 Reg6
+irmov $0xf0 Reg7
+irmov $0x01 Reg0
+irmov $0x01 Reg1
+str Reg0 (Reg5)
+add Reg1 Reg0
+add Reg1 Reg5
+add Reg1 Reg3
+rrmov Reg3 Reg2
+sub Reg4 Reg2
+jz 0x10
+jmp 0x08
+irmov $0x00 Reg3
+irmov $0x10 Reg4
+str Reg0 (Reg6)
+add Reg1 Reg0
+add Reg1 Reg6
+add Reg1 Reg3
+rrmov Reg3 Reg2
+sub Reg4 Reg2
+jz 0x1a
+jmp 0x12
+irmov $0xd0 Reg5
+irmov $0xe0 Reg6
+irmov $0xf0 Reg7
+irmov $0x00 Reg3
+irmov $0x10 Reg4
+ldr (Reg5) Reg0
+ldr (Reg6) Reg2
+add Reg0 Reg2
+str Reg2 (Reg7)
+add Reg1 Reg5
+add Reg1 Reg6
+add Reg1 Reg7
+add Reg1 Reg3
+rrmov Reg3 Reg2
+sub Reg4 Reg2
+jz 0x2b
+jmp 0x1f
+halt
